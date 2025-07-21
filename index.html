@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Boxeo en vivo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff6b35;
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: #ffffff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            color: #ff6b35;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23ff6b35" width="1200" height="600"/><text x="600" y="300" text-anchor="middle" fill="white" font-size="48">Nombre evento</text></svg>');
+            background-size: cover;
+            background-position: center;
+            height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #ff6b35;
+        }
+
+       .event-date {
+            font-size: 1.2rem;
+            background: rgba(255, 107, 53, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #ff6b35, #ff8c42);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        /* Scoreboard */
+        .scoreboard-section {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 20px;
+        }
+
+        .scoreboard {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scoreboard::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b35, #ff8c42, #ff6b35);
+            animation: pulse-glow 2s infinite;
+        }
+
+        .scoreboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .scoreboard-title {
+            font-size: 2rem;
+            color: #ff6b35;
+            margin-bottom: 0.5rem;
+        }
+
+        .round-info {
+            font-size: 1.1rem;
+            color: #aaa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .final-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: #ff3333;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        .final-dot {
+            width: 10px;
+            height: 10px;
+            background: #ff6b35;
+            border-radius: 50%;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            color: #ff6b35;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .final-time {
+            font-size: 1.2rem;
+            color: #ff6b35;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .scoreboard-main {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 2rem;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .fighter-score {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 107, 53, 0.05);
+            border-radius: 15px;
+            border: 1px solid #333;
+            transition: all 0.3s;
+        }
+
+        .fighter-score:hover {
+            border-color: #ff6b35;
+            transform: translateY(-2px);
+        }
+
+        .fighter-score.winning {
+            background: rgba(255, 107, 53, 0.1);
+            border-color: #ff6b35;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
+        }
+
+        .score-name {
+            font-size: 1.5rem;
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .score-points {
+            font-size: 3rem;
+            color: #ffffff;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .score-rounds {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .round-score {
+            background: #333;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        .round-score.won {
+            background: #ff6b35;
+            color: white;
+        }
+
+        .round-score.lost {
+            background: #666;
+            color: #ccc;
+        }
+
+        .stats-preview {
+            font-size: 0.9rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .vs-score {
+            font-size: 2rem;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .scoreboard-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .control-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover {
+            background: #ff6b35;
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: #ff6b35;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .round-by-round {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid #333;
+        }
+
+        .round-by-round h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .rounds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .round-detail {
+            background: #2a2a2a;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .round-detail h4 {
+            color: #ff6b35;
+            margin-bottom: 0.5rem;
+        }
+
+        .round-scores {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .round-winner {
+            font-size: 0.9rem;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        /* Content Section */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 20px;
+        }
+
+        .article-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .article-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #ff6b35;
+        }
+
+        .article-meta {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .fighters-section {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 2rem;
+            margin: 3rem 0;
+            align-items: center;
+        }
+
+        .fighter-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #333;
+            transition: transform 0.3s;
+        }
+
+        .fighter-card:hover {
+            transform: translateY(-5px);
+            border-color: #ff6b35;
+        }
+
+        .fighter-name {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: #ff6b35;
+        }
+
+        .fighter-record {
+            color: #aaa;
+            margin-bottom: 1rem;
+        }
+
+        .fighter-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b35, #333);
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            overflow: hidden;
+            border: 3px solid #ff6b35;
+        }
+
+        .fighter-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .fighter-avatar {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            background: linear-gradient(45deg, #ff6b35, #ff8c42);
+            border-radius: 50%;
+        }
+
+        .vs-section {
+            text-align: center;
+            font-size: 3rem;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .article-content {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            border-left: 4px solid #ff6b35;
+        }
+
+        .article-content h2 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            color: #ddd;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid #333;
+        }
+
+        .info-card h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .info-card li:last-child {
+            border-bottom: none;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a1a1a;
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 2px solid #333;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-logo {
+            font-size: 2rem;
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        .footer-text {
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            color: #ff6b35;
+            text-decoration: none;
+            padding: 0.5rem;
+            border: 1px solid #333;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: #ff6b35;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .fighters-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .vs-section {
+                font-size: 2rem;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+
+            .scoreboard-main {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .vs-score {
+                font-size: 1.5rem;
+            }
+
+            .round-info {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .scoreboard-controls {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .control-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                background: linear-gradient(90deg, #ff6b35, #ff8c42, #ff6b35);
+            }
+            50% { 
+                background: linear-gradient(90deg, #ff8c42, #ff6b35, #ff8c42);
+            }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+
+    <!--Popunders anuncios
+-->
+
+
+   <!--Popunders anuncios fin
+-->
+
+</head>
+
+
+
+
+<body>
+    <header class="header">
+        <div class="nav-container">
+            <a href="#" class="logo">Ver Boxeo en Vivo 🥊</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#">Deportes</a></li>
+                    <li><a href="#">Peleas</a></li>
+                    <li><a href="#">Boxeo</a></li>
+                    <li><a href="#">Noticias</a></li>
+                    <li><a href="#">Suscribirse</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+
+
+
+    <section class="hero">
+        <div class="hero-content fade-in">
+           
+              Boxeo en vivo
+            </div>
+
+            <main class="content">
+        <div class="article-header">
+            <h1 class="article-title">Aquí verás Boxeo en vivo 🥊</h1>
+            
+        </div>
+
+        </div>
+    </section>
+
+
+<!-- Native Banner anuncios 
+        -->
+
+<!-- Native Banner anuncios fin
+        -->
+
+
+        <!-- iframe comienzo
+        -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFC 318 Video Player - Con Overlay</title>
+    <style>
+        .video-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 20px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .video-wrapper {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b35, #ff8c42, #ff6b35);
+            animation: pulse-glow 2s infinite;
+        }
+
+        .video-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .video-title {
+            font-size: 1.8rem;
+            color: #ff6b35;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .video-subtitle {
+            color: #aaa;
+            font-size: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #ff3333;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: #ff3333;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        /* Contenedor del reproductor */
+        .player-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* Aspect ratio 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 15px;
+            background: #000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        /* El reproductor embebido */
+        .embedded-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+        }
+
+        /* Overlay clickeable */
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .play-overlay:hover {
+            background: linear-gradient(135deg, rgba(90, 103, 216, 0.95) 0%, rgba(107, 70, 193, 0.95) 100%);
+            transform: scale(1.02);
+        }
+
+        .play-button {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .play-overlay:hover .play-button {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-left: 25px solid #333;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            margin-left: 5px;
+        }
+
+        .stream-info {
+            color: white;
+            text-align: center;
+        }
+
+        .stream-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .stream-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Overlay de carga */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 15;
+            border-radius: 15px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .video-title {
+                font-size: 1.4rem;
+            }
+            
+            .video-subtitle {
+                flex-direction: column;
+                gap: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .play-button {
+                width: 60px;
+                height: 60px;
+            }
+
+            .play-icon {
+                border-left: 18px solid #333;
+                border-top: 12px solid transparent;
+                border-bottom: 12px solid transparent;
+            }
+
+            .stream-title {
+                font-size: 18px;
+            }
+
+            .stream-subtitle {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-wrapper {
+                padding: 1rem;
+            }
+            
+            .video-container {
+                padding: 0 10px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                background: linear-gradient(90deg, #ff6b35, #ff8c42, #ff6b35);
+            }
+            50% { 
+                background: linear-gradient(90deg, #ff8c42, #ff6b35, #ff8c42);
+            }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background: #0a0a0a; font-family: Arial, sans-serif;">
+    <div class="video-container">
+        <div class="video-wrapper">
+            <div class="video-header">
+                <h2 class="video-title">🥊 Boxeo EN VIVO</h2>
+                <div class="video-subtitle">
+                    <div class="live-indicator">
+                        <div class="live-dot"></div>
+                        EN VIVO
+                    </div>
+                    <span>Disfruta la pelea en vivo</span>
+                    <span>📍 Justo aquí</span>
+                </div>
+            </div>
+            
+            <!-- Contenedor del reproductor con overlay -->
+            <div class="player-container">
+                <!-- Aquí se carga tu reproductor embebido -->
+                <div id="embeddedPlayer" class="embedded-player" style="display: none;">
+                    <!-- TU SCRIPT EMBEBIDO VA AQUÍ -->
+                    <script type='text/javascript'>
+                        width=1280, height=720, channel='ufc317', g='1';
+                    </script>
+                    <script type='text/javascript' src='https://new.allover.top/static/scripts/hucaster.js'></script>
+                </div>
+
+                <!-- Overlay clickeable -->
+                <div id="playOverlay" class="play-overlay">
+                    <div class="play-button">
+                        <div class="play-icon"></div>
+                    </div>
+                    <div class="stream-info">
+                        <div class="stream-title">Boxeo Live Stream</div>
+                        <div class="stream-subtitle">Haz clic para reproducir el stream en vivo</div>
+                    </div>
+                </div>
+
+                <!-- Overlay de carga -->
+                <div id="loadingOverlay" class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const playOverlay = document.getElementById('playOverlay');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const embeddedPlayer = document.getElementById('embeddedPlayer');
+
+        // Función para iniciar el stream
+        function startStream() {
+            // Mostrar loading
+            loadingOverlay.style.display = 'flex';
+            
+            // Simular delay de carga
+            setTimeout(() => {
+                // Mostrar el reproductor embebido
+                embeddedPlayer.style.display = 'block';
+                
+                // Ocultar overlays
+                playOverlay.classList.add('hidden');
+                loadingOverlay.style.display = 'none';
+            }, 1500);
+        }
+
+        // Event listener para el click en el overlay
+        playOverlay.addEventListener('click', startStream);
+
+        // Opcional: Si quieres que se auto-reproduzca después de cierto tiempo
+        // setTimeout(() => {
+        //     startStream();
+        // }, 3000); // Auto-play después de 3 segundos
+    </script>
+</body>
+</html>
+ <!-- Fin Iframe
+ -->
+
+ 
+
+
+ <!-- Direct Link enmascarado anuncio
+ -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gana Boletos UFC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .ufc-banner {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-decoration: none;
+            display: block;
+            transition: transform 0.2s ease;
+        }
+
+        .ufc-banner:hover {
+            transform: translateY(-3px);
+        }
+
+        .title {
+            color: #d32f2f;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .cta-button {
+            background: #d32f2f;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <a href="dIRECT LINK AQUÍ" class="ufc-banner">
+        <div class="title">🥊 ¿Quieres ganar boletos para el Próximo combate de BOX?</div>
+        <div class="subtitle">Participa y consigue tu entrada al próximo evento</div>
+        <img src="./assets/imgs/participa_aqui_1.png" alt="Participa aquí" class="image">
+        <div class="cta-button">¡Participar Ahora!</div>
+    </a>
+</body>
+</html>
+ <!-- Direct Link enmascarado anuncio fin-->
+
+        <div class="fighters-section fade-in">
+            <div class="fighter-card">
+                <div class="fighter-image">
+                    <img src="./assets/imgs/hollo.png">
+                </div>
+                <h3 class="fighter-name">Luchador 1</h3>
+                <div class="fighter-record">25-7-0 (12 KO)</div>
+                <p>Campeón BMF actual</p>
+            </div>
+            
+            <div class="vs-section">VS</div>
+            
+            <div class="fighter-card">
+                <div class="fighter-image">
+                   <img src="./assets/imgs/i.png">
+                </div>
+                <h3 class="fighter-name">Luchador 2</h3>
+                <div class="fighter-record">30-9-0 (20 KO)</div>
+                <p>Ex-campeón interino</p>
+            </div>
+        </div>
+
+        <!-- Final Scoreboard Section -->
+        <section class="scoreboard-section fade-in">
+            <div class="scoreboard">
+                <div class="scoreboard-header">
+                    <h2 class="scoreboard-title">RESULTADO FINAL</h2>
+                    <div class="round-info">
+                        <div class="final-indicator">
+                            <div class="final-dot"></div>
+                            FINALIZADO
+                        </div>
+                        <div>Decisión Unánime</div>
+                        <div class="final-time">5 Rounds Completos</div>
+                    </div>
+                </div>
+                
+                <div class="scoreboard-main">
+                    <div class="fighter-score winning">
+                        <div class="score-name">LUCHADOR 1</div>
+                        <div class="score-points">48</div>
+                        <div class="score-rounds">
+                            <div class="round-score won">10</div>
+                            <div class="round-score lost">9</div>
+                            <div class="round-score won">10</div>
+                            <div class="round-score won">10</div>
+                            <div class="round-score lost">9</div>
+                        </div>
+                        <div class="stats-preview">
+                            <span>GANADOR</span>
+                            <span>🏆 NUEVO CAMPEÓN BMF</span>
+                        </div>
+                    </div>
+                    
+                    <div class="vs-score">VS</div>
+                    
+                    <div class="fighter-score">
+                        <div class="score-name">pELEADOR 2</div>
+                        <div class="score-points">47</div>
+                        <div class="score-rounds">
+                            <div class="round-score lost">9</div>
+                            <div class="round-score won">10</div>
+                            <div class="round-score lost">9</div>
+                            <div class="round-score lost">9</div>
+                            <div class="round-score won">10</div>
+                        </div>
+                        <div class="stats-preview">
+                            <span>VALIENTE ESFUERZO</span>
+                            <span>⚔️ GUERRA ÉPICA</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scoreboard-controls">
+                    <button class="control-btn active" onclick="showResults()">RESULTADO</button>
+                    <button class="control-btn" onclick="showStats()">ESTADÍSTICAS</button>
+                    <button class="control-btn" onclick="showRounds()">ROUNDS</button>
+                    <button class="control-btn" onclick="showHighlights()">HIGHLIGHTS</button>
+                </div>
+                
+                <div class="round-by-round" id="roundByRound" style="display: none;">
+                    <h3>Puntuación por Round</h3>
+                    <div class="rounds-grid">
+                        <div class="round-detail">
+                            <h4>Round 1</h4>
+                            <div class="round-scores">
+                                <span>Holloway: 10</span>
+                                <span>Poirier: 9</span>
+                            </div>
+                            <div class="round-winner">Ganador: Holloway</div>
+                        </div>
+                        <div class="round-detail">
+                            <h4>Round 2</h4>
+                            <div class="round-scores">
+                                <span>Holloway: 9</span>
+                                <span>Poirier: 10</span>
+                            </div>
+                            <div class="round-winner">Ganador: Poirier</div>
+                        </div>
+                        <div class="round-detail">
+                            <h4>Round 3</h4>
+                            <div class="round-scores">
+                                <span>Holloway: 10</span>
+                                <span>Poirier: 9</span>
+                            </div>
+                            <div class="round-winner">Ganador: Holloway</div>
+                        </div>
+                        <div class="round-detail">
+                            <h4>Round 4</h4>
+                            <div class="round-scores">
+                                <span>Holloway: 10</span>
+                                <span>Poirier: 9</span>
+                            </div>
+                            <div class="round-winner">Ganador: Holloway</div>
+                        </div>
+                        <div class="round-detail">
+                            <h4>Round 5</h4>
+                            <div class="round-scores">
+                                <span>Holloway: 9</span>
+                                <span>Poirier: 10</span>
+                            </div>
+                            <div class="round-winner">Ganador: Poirier</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="article-content fade-in">
+            <h2>Información del evento</h2>
+
+<p></p>
+            <p>Información del evento (insertar)</p>
+            
+            
+        
+        <p>Lista de peleadores (insertar)</p>
+        </div>
+
+        <div class="info-cards fade-in">
+            <div class="info-card">
+                <h3>Cómo ver en Latinoamérica</h3>
+                <ul>
+                    <li>📺 Star+</li>
+                    <li>🥊 UFC Fight Pass</li>
+                    <li>🎬 Disney+</li>
+                    <li>📱 Fight Adiction App</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>Horarios por país</h3>
+                <ul>
+                    <li>🇦🇷 Argentina: 23:00</li>
+                    <li>🇨🇴 Colombia: 21:00</li>
+                    <li>🇲🇽 México: 20:00</li>
+                    <li>🇨🇱 Chile: 22:00</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>Cartelera Principal</h3>
+                <ul>
+                    <li>Max Holloway vs Dustin Poirier 3</li>
+                    <li>Pelea co-estelar TBA</li>
+                    <li>Preliminares desde las 19:00</li>
+                    <li>Evento principal: 22:00</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">Fight Adiction</div>
+            <p class="footer-text">La plataforma global de entretenimiento deportivo</p>
+            <div class="social-links">
+                <a href="#">📘</a>
+                <a href="#">🐦</a>
+                <a href="#">📸</a>
+                <a href="#">▶️</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scoreboard functionality
+        function showResults() {
+            document.getElementById('roundByRound').style.display = 'none';
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function showStats() {
+            document.getElementById('roundByRound').style.display = 'none';
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            // Here you could show detailed fight statistics
+        }
+
+        function showRounds() {
+            document.getElementById('roundByRound').style.display = 'block';
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function showHighlights() {
+            document.getElementById('roundByRound').style.display = 'none';
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            // Here you could show fight highlights
+        }
